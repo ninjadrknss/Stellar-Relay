@@ -22,8 +22,6 @@ public class Planet {
 	private final float width;
 	private final float scale;
 
-	private int satelliteCount = 0;
-
 	private State state = State.NONE;
 
 	public static ArrayList<Planet> planets = new ArrayList<>();
@@ -69,6 +67,41 @@ public class Planet {
 	}
 
 	public static void spawnNewPlanet() {
+		if (planets.size() < 3) {
+			float dist = (float) (Math.random() * 200 + 50);
+			float angle = (float) (Math.random() * 2 * Math.PI);
+
+			float x = Gdx.graphics.getWidth() / 2.0f + (float) Math.cos(angle) * dist;
+			float y = Gdx.graphics.getHeight() / 2.0f + (float) Math.sin(angle) * dist;
+
+			int tries = 0;
+			while_loop:
+			while (true) {
+				if (tries > 1000) {
+					return; // Give up after 1000 tries to prevent infinite loop
+				}
+
+				for (Planet planet : planets) {
+					if (Math.hypot(planet.x - x, planet.y - y)
+							< 150) { // Minimum distance of 150 pixels from existing planets
+						dist = (float) (Math.random() * 200 + 50);
+						angle = (float) (Math.random() * 2 * Math.PI);
+
+						x = Gdx.graphics.getWidth() / 2.0f + (float) Math.cos(angle) * dist;
+						y = Gdx.graphics.getHeight() / 2.0f + (float) Math.sin(angle) * dist;
+
+						tries++;
+						continue while_loop;
+					}
+				}
+				break;
+			}
+
+			int type = rand.nextInt(16);
+			new Planet(x, y, type);
+			return;
+		}
+
 		float x = rand.nextFloat() * Gdx.graphics.getWidth() * 0.7f + Gdx.graphics.getWidth() * 0.05f;
 		float y = rand.nextFloat() * Gdx.graphics.getHeight() * 0.7f + Gdx.graphics.getHeight() * 0.05f;
 
@@ -80,13 +113,28 @@ public class Planet {
 				return; // Give up after 1000 tries to prevent infinite loop
 			}
 
+			boolean tooFar = true;
+
 			for (Planet planet : planets) {
-				if (Math.hypot(planet.x - x, planet.y - y) < 150) {
+				if (Math.hypot(planet.x - x, planet.y - y)
+						< 250) { // Minimum distance of 100 pixels from existing planets
+					tooFar = false;
+				}
+
+				if (Math.hypot(planet.x - x, planet.y - y)
+						< 150) { // Minimum distance of 150 pixels from existing planets
 					x = rand.nextFloat() * Gdx.graphics.getWidth() * 0.7f + Gdx.graphics.getWidth() * 0.05f;
 					y = rand.nextFloat() * Gdx.graphics.getHeight() * 0.7f + Gdx.graphics.getHeight() * 0.05f;
 					tries++;
 					continue while_loop;
 				}
+			}
+
+			if (tooFar) {
+				x = rand.nextFloat() * Gdx.graphics.getWidth() * 0.7f + Gdx.graphics.getWidth() * 0.05f;
+				y = rand.nextFloat() * Gdx.graphics.getHeight() * 0.7f + Gdx.graphics.getHeight() * 0.05f;
+				tries++;
+				continue;
 			}
 			break;
 		}
@@ -150,13 +198,5 @@ public class Planet {
 
 	public float getWidth() {
 		return 100 * scale;
-	}
-
-	public void incrementSatelliteCount() {
-		satelliteCount++;
-	}
-
-	public int getSatelliteCount() {
-		return satelliteCount;
 	}
 }

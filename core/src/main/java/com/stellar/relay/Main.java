@@ -23,19 +23,12 @@ public class Main extends ApplicationAdapter {
 		gui = new GUI();
 		viewport = new FitViewport(8, 8);
 
-		for (int i = 0; i < 16; i++) {
+		for (int i = 0; i < 2; i++) {
 			Planet.spawnNewPlanet();
 		}
 
-		for (int i = 0; i < 20; i++) {
-			Planet randomPlanet = Planet.planets.get((int) (Math.random() * Planet.planets.size()));
-
-			if (Math.pow(Math.random(), 1.0 / randomPlanet.getSatelliteCount()) > 0.2) {
-				i--;
-				continue;
-			}
-
-			Satellite.spawnNewSatellite(randomPlanet);
+		for (int i = 0; i < 2; i++) {
+			Satellite.spawnNewSatellite();
 		}
 	}
 
