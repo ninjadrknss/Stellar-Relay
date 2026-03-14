@@ -10,13 +10,17 @@ public class Main extends ApplicationAdapter {
 	private SpriteBatch batch;
 	private FitViewport viewport;
 
-	private Cursor cursor;
+	private Controller controller;
 
 	@Override
 	public void create() {
 		batch = new SpriteBatch();
-		cursor = new Cursor(100, 100, Player.LEFT);
+		controller = new Controller(100, 100, Player.LEFT);
 		viewport = new FitViewport(8, 8);
+
+		for (int i = 0; i < 16; i++) {
+			Planet.spawnNewPlanet();
+		}
 	}
 
 	@Override
@@ -36,13 +40,14 @@ public class Main extends ApplicationAdapter {
 	}
 
 	private void input() {
-		cursor.input();
+		controller.input();
 	}
 
 	private void draw() {
 		ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
 		batch.begin();
-		cursor.draw(batch);
+		Planet.drawAll(batch);
+		controller.draw(batch);
 		viewport.apply();
 		batch.end();
 	}
