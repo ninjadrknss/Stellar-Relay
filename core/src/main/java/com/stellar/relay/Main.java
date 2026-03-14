@@ -7,15 +7,20 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class Main extends ApplicationAdapter {
+	public static final boolean DEBUG = true;
+
 	private SpriteBatch batch;
 	private FitViewport viewport;
 
-	private Controller controller;
+	private Controller controller_left;
+
+	private GUI gui;
 
 	@Override
 	public void create() {
 		batch = new SpriteBatch();
-		controller = new Controller(100, 100, Player.LEFT);
+		controller_left = new Controller(100, 100, Player.LEFT);
+		gui = new GUI();
 		viewport = new FitViewport(8, 8);
 
 		for (int i = 0; i < 16; i++) {
@@ -51,7 +56,7 @@ public class Main extends ApplicationAdapter {
 	}
 
 	private void input() {
-		controller.input();
+		controller_left.input();
 	}
 
 	private void draw() {
@@ -59,8 +64,9 @@ public class Main extends ApplicationAdapter {
 		batch.begin();
 		Planet.drawAll(batch);
 		Satellite.drawAll(batch);
-		controller.draw(batch);
+		controller_left.draw(batch);
 		viewport.apply();
+		gui.draw(batch);
 		batch.end();
 	}
 }

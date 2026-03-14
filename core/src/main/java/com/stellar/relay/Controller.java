@@ -72,7 +72,7 @@ public class Controller {
 						inputs[i] = data.charAt(i + 2 + (player == Player.LEFT ? 0 : 6)) == '1';
 					}
 				}
-				System.out.println("Received data: " + data);
+				if (Main.DEBUG) System.out.println("Received data: " + data);
 				buffer = new byte[256];
 			}
 		}
