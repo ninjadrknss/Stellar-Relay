@@ -165,7 +165,7 @@ public class Controller {
 				if (Main.DEBUG) System.out.println("Dropped message");
 				path = null;
 			} else if (Main.DEBUG) {
-				System.out.println("Removed last pathable from message");
+				if (Main.DEBUG) System.out.println("Removed last pathable from message");
 			}
 		}
 

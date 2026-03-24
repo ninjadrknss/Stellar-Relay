@@ -113,9 +113,12 @@ public class Path {
 	}
 
 	public void add(Pathable p) {
-		if (!path.contains(p) && !isComplete && (p instanceof Satellite || p.equals(destination)))
+		if (!path.contains(p)
+				&& !isComplete
+				&& (p instanceof Satellite s && s.path == null || p.equals(destination))) {
+			if (p instanceof Satellite s) s.path = this;
 			path.add(p);
-		else {
+		} else {
 			System.out.println("Invalid path element: " + p);
 		}
 
@@ -127,8 +130,10 @@ public class Path {
 
 	public boolean remove() {
 		isComplete = false; // Mark the path as incomplete if an element is removed
-		if (path.size() > 1) path.removeLast();
-		else {
+		if (path.size() > 1) {
+			Pathable p = path.removeLast();
+			if (p instanceof Satellite s) s.path = null;
+		} else {
 			drop(); // If there are only an element left (the source planet), drop the path entirely
 			return true;
 		}
@@ -160,10 +165,18 @@ public class Path {
 	public boolean valid(Pathable p) {
 		float dist =
 				(float) Math.hypot(p.getCX() - path.getLast().getCX(), p.getCY() - path.getLast().getCY());
-		if (dist > MAX_CONNECTION_LENGTH) return false;
-		System.out.println(dist);
-		return !path.contains(p)
-				&& !isComplete
-				&& (!(p instanceof Planet planet) || destination.equals(planet));
+		if (dist > MAX_CONNECTION_LENGTH)
+			return false; // too far away from the last element in the path
+
+		if (path.contains(p) || isComplete)
+			return false; // is not already in the path or the path is already complete
+
+		if (p instanceof Planet planet && !destination.equals(planet))
+			return false; // is not a planet other than the destination
+
+		if (p instanceof Satellite satellite && satellite.path != null)
+			return false; // is not a satellite that is already part of another path
+
+		return true;
 	}
 }

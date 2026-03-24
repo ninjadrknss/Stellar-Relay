@@ -1,16 +1,19 @@
 package com.stellar.relay;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class Message {
-	public static final int MAX_TIMEOUT = 2000;
-	public static final float speed = 0.1f * 20;
+	public static final int MAX_TIMEOUT = 20;
+	public static final float speed = 0.1f;
 
 	enum State {
 		AWAITING,
@@ -60,6 +63,16 @@ public class Message {
 
 	private void draw(Batch batch, ShapeRenderer shapeRenderer) {
 		if (state == State.AWAITING) {
+			shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+			shapeRenderer.setColor(Color.WHITE);
+			shapeRenderer.arc(
+					awaitingSprite.getX() + awaitingSprite.getWidth() * 0.5f,
+					awaitingSprite.getY() + awaitingSprite.getHeight() * 0.52f,
+					20,
+					90,
+					life / MAX_TIMEOUT * 360);
+			shapeRenderer.end();
+
 			batch.begin();
 			awaitingSprite.draw(batch);
 			batch.end();
@@ -73,6 +86,11 @@ public class Message {
 			if (progress >= 1) {
 				progress = 1;
 				state = State.DELIVERED;
+				for (Satellite satellite : Satellite.satellites) {
+					if (satellite.path == path) {
+						satellite.path = null; // Clear any paths that are currently routing this message
+					}
+				}
 				path.delete();
 				GUI.score += 100; // Award points for successful delivery
 				if (Main.DEBUG) System.out.println("Message delivered to " + destination);
@@ -107,16 +125,57 @@ public class Message {
 				messages.stream().filter(message -> message.state == State.DELIVERED).toList());
 	}
 
-	// TODO: check that its actually possible to create a path between the source and destination
-	// planets before spawning the message
 	private static boolean possiblePathExists(Planet source, Planet destination) {
-		return true;
+		int size = Satellite.satellites.size();
+		boolean[][] validEdge =
+				new boolean[size + 2][size + 2]; // +2 for source and destination planets
+
+		for (int i = 0; i < size; i++) {
+			Satellite satellite = Satellite.satellites.get(i);
+			if (satellite.inRange(source)) {
+				validEdge[size][i] = true;
+				validEdge[i][size] = true;
+			}
+			if (satellite.inRange(destination)) {
+				validEdge[size + 1][i] = true;
+				validEdge[i][size + 1] = true;
+			}
+
+			for (int j = i + 1; j < size; j++) {
+				if (satellite.inRange(Satellite.satellites.get(j))) {
+					validEdge[i][j] = true;
+					validEdge[j][i] = true;
+				}
+			}
+		}
+
+		boolean[] visited = new boolean[size + 2];
+
+		Queue<Integer> q = new LinkedList<>();
+		visited[size] = true;
+		q.add(size);
+
+		while (!q.isEmpty()) {
+			int curr = q.poll();
+
+			for (int x = 0; x < size + 2; x++) {
+				if (validEdge[curr][x] && !visited[x]) {
+					visited[x] = true;
+					q.add(x);
+				}
+			}
+		}
+
+		System.out.println("Possible: " + visited[size + 1]);
+
+		return visited[size + 1]; // Check if the destination planet is reachable
 	}
 
 	public static void spawnNewMessage() {
-		Planet source = null, destination = null;
+		Planet source, destination;
 
-		while (source == null || !possiblePathExists(source, destination)) {
+		int tries = 0;
+		do {
 			source = Planet.planets.get((int) (Math.random() * Planet.planets.size()));
 			while (source.message != null) { // Ensure the source planet doesn't already have a message
 				source = Planet.planets.get((int) (Math.random() * Planet.planets.size()));
@@ -127,8 +186,18 @@ public class Message {
 			while (destination == source) { // Ensure the destination is different from the source
 				destination = Planet.planets.get((int) (Math.random() * Planet.planets.size()));
 			}
-		}
+			tries++;
+			if (tries > 1000) {
+				System.out.println(
+						"Failed to find valid source and destination planets for new message after 1000 tries, giving up.");
+				return;
+			}
+		} while (!possiblePathExists(source, destination));
 
 		new Message(source, destination);
+	}
+
+	public static void clear() {
+		messages.clear();
 	}
 }

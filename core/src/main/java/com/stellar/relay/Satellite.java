@@ -17,6 +17,8 @@ public class Satellite implements Pathable {
 
 	public static ArrayList<Satellite> satellites = new ArrayList<>();
 
+	public Path path = null;
+
 	public Satellite(float x, float y) {
 		sprite = new Sprite(new Texture("PLACEHOLDER_Satellite.png"));
 		sprite.setSize(60, 60);
@@ -132,5 +134,10 @@ public class Satellite implements Pathable {
 	@Override
 	public void setState(State state) {
 		this.state = state;
+	}
+
+	public boolean inRange(Pathable pathable) {
+		return Math.hypot(getCX() - pathable.getCX(), getCY() - pathable.getCY())
+				< Path.MAX_CONNECTION_LENGTH;
 	}
 }

@@ -95,7 +95,7 @@ public class Main extends ApplicationAdapter {
 	private void logic() {
 		if (Message.messages.isEmpty()) {
 			Planet.spawnNewPlanet();
-			for (int i = 0; i < 4 * Math.log(Planet.planets.size()); i++) {
+			for (int i = 0; i < 2 * Math.log(Planet.planets.size()); i++) {
 				Satellite.spawnNewSatellite();
 			}
 
