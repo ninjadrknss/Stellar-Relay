@@ -12,8 +12,9 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 public class Message {
-	public static final float MAX_TIMEOUT = 30 / Main.difficulty.multiplier;
-	public static final float speed = 0.2f;
+	public static final float MAX_TIMEOUT =
+			30 / Main.difficulty.multiplier; // in seconds, TODO tweak this value for better gameplay
+	public static final float speed = 0.2f; // Progress per second
 
 	enum State {
 		AWAITING,
@@ -25,8 +26,6 @@ public class Message {
 	private final Planet destination;
 	public final Path path;
 
-	// TODO: implement different creature types for the planet inhabitants
-	private final int creature = 0;
 	private float progress; // 0 to 1
 	private float life;
 
@@ -41,7 +40,7 @@ public class Message {
 		this.source = source;
 		this.destination = destination;
 		this.progress = 0;
-		this.life = MAX_TIMEOUT; // in seconds, TODO tweak this value for better gameplay
+		this.life = MAX_TIMEOUT;
 
 		path = new Path(this, source, destination);
 		path.add(source);
@@ -51,11 +50,11 @@ public class Message {
 		awaitingSprite = new Sprite(new Texture("PLACEHOLDER_planetMessage.png"));
 		awaitingSprite.setPosition(
 				source.getCX() + 20, source.getCY() + 20); // Position on top right of the source planet
-		awaitingSprite.setSize(30, 30);
+		awaitingSprite.setSize(40, 40);
 
 		inTransitSprite = new Sprite(new Texture("PLACEHOLDER_sendingMessage.png"));
 		inTransitSprite.setPosition(-100, -100); // Start off-screen
-		inTransitSprite.setSize(30, 30);
+		inTransitSprite.setSize(40, 40);
 		inTransitSprite.setOrigin(inTransitSprite.getWidth() / 2, inTransitSprite.getHeight() / 2);
 
 		messages.add(this);
@@ -72,9 +71,9 @@ public class Message {
 			shapeRenderer.arc(
 					awaitingSprite.getX() + awaitingSprite.getWidth() * 0.5f,
 					awaitingSprite.getY() + awaitingSprite.getHeight() * 0.52f,
-					25,
+					30,
 					90,
-					life / MAX_TIMEOUT * 360);
+					Math.max(life / MAX_TIMEOUT * 360, 0));
 			shapeRenderer.end();
 
 			batch.begin();
@@ -83,7 +82,7 @@ public class Message {
 
 			life -= Gdx.graphics.getDeltaTime();
 
-			if (life <= 0) Main.gameOver();
+			if (life <= 0) Main.initGameOver();
 		} else if (state == State.IN_TRANSIT) {
 			progress += speed * Gdx.graphics.getDeltaTime();
 
@@ -194,6 +193,12 @@ public class Message {
 			if (tries > 1000) {
 				System.out.println(
 						"Failed to find valid source and destination planets for new message after 1000 tries, giving up.");
+
+				if (GUI.score == 0) {
+					Main.restart(); // Restart the game if we can't find a valid message to spawn at the
+					// beginning
+					System.out.println("Restarting game due to failure to spawn initial message.");
+				}
 				return;
 			}
 		} while (!possiblePathExists(source, destination));

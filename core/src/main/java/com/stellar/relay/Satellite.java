@@ -21,7 +21,7 @@ public class Satellite implements Pathable {
 
 	public Satellite(float x, float y) {
 		sprite = new Sprite(new Texture("PLACEHOLDER_Satellite.png"));
-		sprite.setSize(60, 60);
+		sprite.setSize(80, 80);
 		sprite.setOriginCenter();
 		sprite.setPosition(x, y);
 		sprite.setRotation(angle); // Random initial rotation

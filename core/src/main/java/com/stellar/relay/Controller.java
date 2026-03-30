@@ -29,13 +29,15 @@ public class Controller {
 
 	public Pathable lastPathable = null;
 
-	public Controller(float x, float y, Player player) {
+	public Controller(Player player) {
 		this.player = player;
 
 		sprite = new Sprite(new Texture("PLACEHOLDER_Spaceship.png"));
-		sprite.setSize(40, 40);
+		sprite.setSize(70, 70);
 		sprite.setOrigin(sprite.getWidth() / 2 - 10, sprite.getHeight() / 2);
-		sprite.setPosition(x, y);
+		sprite.setPosition(
+				Gdx.graphics.getWidth() / 2f + 400 * (player == Player.LEFT ? -1 : 1),
+				Gdx.graphics.getHeight() / 2f);
 
 		SerialPort[] ports = SerialPort.getCommPorts();
 
@@ -57,8 +59,8 @@ public class Controller {
 		}
 	}
 
-	public void input() {
-		float speed = 200f * Gdx.graphics.getDeltaTime();
+	public void input(boolean movementEnabled) {
+		float speed = 300f * Gdx.graphics.getDeltaTime();
 		double rotSpeed = 200.0f * Gdx.graphics.getDeltaTime();
 
 		boolean[] inputs = new boolean[6]; // Up, Down, Left, Right, button1, button2
@@ -108,9 +110,11 @@ public class Controller {
 
 		float targetAngle = (float) (Math.atan2(velY, velX) * MathUtils.radiansToDegrees + 360) % 360;
 
-		sprite.translateX(
-				velX != 0 ? (float) (Math.cos(targetAngle * MathUtils.degreesToRadians) * speed) : 0);
-		sprite.translateY((float) (Math.sin(targetAngle * MathUtils.degreesToRadians) * speed));
+		if (movementEnabled) {
+			sprite.translateX(
+					velX != 0 ? (float) (Math.cos(targetAngle * MathUtils.degreesToRadians) * speed) : 0);
+			sprite.translateY((float) (Math.sin(targetAngle * MathUtils.degreesToRadians) * speed));
+		}
 
 		if (velX == 0 && velY == 0) {
 			targetAngle = angle; // Don't change angle if not moving
@@ -119,7 +123,7 @@ public class Controller {
 				MathUtils.lerpAngleDeg(
 						angle, targetAngle, (float) rotSpeed / (Math.abs(targetAngle - angle) + 0.01f));
 
-		sprite.setRotation(angle);
+		if (movementEnabled) sprite.setRotation(angle);
 
 		if (sprite.getX() < 0) {
 			sprite.setX(0);
@@ -159,7 +163,7 @@ public class Controller {
 			button2Prev = false;
 		}
 
-		if (button2Pressed && path != null) { // remove the last pathable
+		if (movementEnabled && button2Pressed && path != null) { // remove the last pathable
 			boolean drop = path.remove();
 			if (drop) {
 				if (Main.DEBUG) System.out.println("Dropped message");
@@ -169,7 +173,7 @@ public class Controller {
 			}
 		}
 
-		if (button1Pressed && path != null && path.isComplete()) {
+		if (movementEnabled && button1Pressed && path != null && path.isComplete()) {
 			path.drop();
 			path.message().start();
 			if (lastPathable != null) lastPathable.setState(Planet.State.NONE);
@@ -215,7 +219,9 @@ public class Controller {
 			lastPathable.setState(Pathable.State.HOVERED);
 		}
 
-		if (button1Pressed && path == null && lastPathable instanceof Planet p) { // Pick up message
+		if (button1Pressed
+				&& path == null
+				&& lastPathable instanceof Planet p) { // Pick up message, TODO: disable
 			path = p.message.path;
 			path.pickup(this);
 			if (Main.DEBUG) System.out.println("Picked up message");

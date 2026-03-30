@@ -22,25 +22,29 @@ public class Planet implements Pathable {
 	private static final boolean[] planetTypeUsed = new boolean[16];
 
 	private static final Random rand = new Random();
-	private static final TextureRegion[] planetTextures = new TextureRegion[16];
+	public static final TextureRegion[] planetTextures = new TextureRegion[16];
 
 	public Message message = null;
 
-	private Planet(float x, float y, int type) {
-		if (planetTextures[0] == null) {
-			Texture sheet = new Texture("PLACEHOLDER_planets.png");
-			int s = 105;
-			for (int r = 0; r < 3; r++) {
-				for (int c = 0; c < 4; c++) {
-					planetTextures[r * 4 + c] = new TextureRegion(sheet, 44 + c * s, 44 + r * s, 100, 100);
-				}
-			}
+	public static void loadTextures() {
+		if (planetTextures[0] != null) return; // Already loaded
 
-			planetTextures[12] = new TextureRegion(sheet, 40, 44 + 3 * s, s, s); // Purple
-			planetTextures[13] = new TextureRegion(sheet, 45 + s, 44 + 3 * s, 90, s); // Asteroid
-			planetTextures[14] = new TextureRegion(sheet, 35 + 2 * s, 44 + 3 * s, 125, s); // Saturn
-			planetTextures[15] = new TextureRegion(sheet, 47 + 3 * s, 44 + 3 * s, 95, s); // Nibbled
+		Texture sheet = new Texture("PLACEHOLDER_planets.png");
+		int s = 105;
+		for (int r = 0; r < 3; r++) {
+			for (int c = 0; c < 4; c++) {
+				planetTextures[r * 4 + c] = new TextureRegion(sheet, 44 + c * s, 44 + r * s, 100, 100);
+			}
 		}
+
+		planetTextures[12] = new TextureRegion(sheet, 40, 44 + 3 * s, s, s); // Purple
+		planetTextures[13] = new TextureRegion(sheet, 45 + s, 44 + 3 * s, 90, s); // Asteroid
+		planetTextures[14] = new TextureRegion(sheet, 35 + 2 * s, 44 + 3 * s, 125, s); // Saturn
+		planetTextures[15] = new TextureRegion(sheet, 47 + 3 * s, 44 + 3 * s, 95, s); // Nibbled
+	}
+
+	private Planet(float x, float y, int type) {
+		loadTextures();
 
 		this.x = x;
 		this.y = y;
