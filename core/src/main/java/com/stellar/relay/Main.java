@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
+import java.util.Arrays;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
@@ -73,7 +74,7 @@ public class Main extends ApplicationAdapter {
 		gui = GUI.getInstance();
 		viewport = new FitViewport(Gdx.graphics.getWidth() / 10f, Gdx.graphics.getHeight() / 10f);
 
-		restart();
+		if (gameState == GameState.FREE_PLAY) restart();
 	}
 
 	@Override
@@ -216,16 +217,13 @@ public class Main extends ApplicationAdapter {
 		}
 
 		ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1f);
-		batch.begin();
-		gui.drawFreePlay(batch);
-		batch.end();
 	}
 
 	private void drawFreePlay() {
 		ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
 		Planet.drawAll(batch, shapeRenderer);
-		Message.drawAll(batch, shapeRenderer);
 		Path.drawAll(shapeRenderer);
+		Message.drawAll(batch, shapeRenderer);
 		Satellite.drawAll(batch, shapeRenderer);
 
 		batch.begin();
@@ -281,6 +279,7 @@ public class Main extends ApplicationAdapter {
 	}
 
 	private void logic() {
+		messageSpawnTimer -= Gdx.graphics.getDeltaTime();
 		if (score < 300) {
 			if (Message.messages.isEmpty()) {
 				Planet.spawnNewPlanet();
@@ -292,13 +291,14 @@ public class Main extends ApplicationAdapter {
 					Message.spawnNewMessage();
 				}
 
-				messageSpawnTimer = (float) (Math.random() * 10f);
+				messageSpawnTimer = (float) (Math.random() * 20f);
 			}
 		} else if (messageSpawnTimer <= 0 || Message.messages.isEmpty()) {
-			messageSpawnTimer = (float) (Math.random() * 10f);
+			System.out.println("Spawning new items...");
+			messageSpawnTimer = (float) (Math.random() * 30f / difficulty.multiplier);
 
-			if (Math.random() > 0.2 * Math.sqrt(Planet.planets.size())) Planet.spawnNewPlanet();
-			for (int i = 0; i < Math.log(Planet.planets.size()); i++) {
+			if (Math.random() > Math.sqrt(Planet.planets.size()) / 10) Planet.spawnNewPlanet();
+			for (int i = 0; i < Math.log(Planet.planets.size()) * (1.5 * Math.random()); i++) {
 				Satellite.spawnNewSatellite();
 			}
 
@@ -316,9 +316,12 @@ public class Main extends ApplicationAdapter {
 	}
 
 	public static void restart() {
+		System.out.println("Restarting game...");
+
 		score = 0;
 		Satellite.satellites.clear();
 		Planet.planets.clear();
+		Arrays.fill(Planet.planetTypeUsed, false);
 		Message.messages.clear();
 		Path.paths.clear();
 

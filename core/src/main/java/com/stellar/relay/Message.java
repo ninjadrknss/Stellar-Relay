@@ -43,7 +43,6 @@ public class Message {
 		this.life = MAX_TIMEOUT;
 
 		path = new Path(this, source, destination);
-		path.add(source);
 
 		source.message = this; // Link the message to the source planet
 
@@ -54,7 +53,7 @@ public class Message {
 
 		inTransitSprite = new Sprite(new Texture("PLACEHOLDER_sendingMessage.png"));
 		inTransitSprite.setPosition(-100, -100); // Start off-screen
-		inTransitSprite.setSize(40, 40);
+		inTransitSprite.setSize(50, 50);
 		inTransitSprite.setOrigin(inTransitSprite.getWidth() / 2, inTransitSprite.getHeight() / 2);
 
 		messages.add(this);
@@ -169,8 +168,6 @@ public class Message {
 			}
 		}
 
-		System.out.println("Possible: " + visited[size + 1]);
-
 		return visited[size + 1]; // Check if the destination planet is reachable
 	}
 
@@ -181,6 +178,10 @@ public class Message {
 		do {
 			source = Planet.planets.get((int) (Math.random() * Planet.planets.size()));
 			while (source.message != null) { // Ensure the source planet doesn't already have a message
+				tries++;
+				if (tries > 1000) {
+					return;
+				}
 				source = Planet.planets.get((int) (Math.random() * Planet.planets.size()));
 			}
 
@@ -195,9 +196,9 @@ public class Message {
 						"Failed to find valid source and destination planets for new message after 1000 tries, giving up.");
 
 				if (GUI.score == 0) {
+					System.out.println("Restarting game due to failure to spawn initial message.");
 					Main.restart(); // Restart the game if we can't find a valid message to spawn at the
 					// beginning
-					System.out.println("Restarting game due to failure to spawn initial message.");
 				}
 				return;
 			}

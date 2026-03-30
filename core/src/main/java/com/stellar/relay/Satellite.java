@@ -82,10 +82,15 @@ public class Satellite implements Pathable {
 			float perpendicularAngle =
 					(float) Math.atan2(planet2.getCY() - planet1.getCY(), planet2.getCX() - planet1.getCX())
 							+ (float) Math.PI / 2;
-			float offset = 150 * ((float) Math.random() * 2 - 1) * ((float) Math.random() * 2 - 1);
+			float offset = 250 * ((float) Math.random() * 2 - 1) * ((float) Math.random() * 2 - 1);
 
 			if (tries > 1000) {
-				System.out.println("Failed to place satellite after 1000 tries, giving up.");
+				if (GUI.score == 0) {
+					System.out.println("Failed to place the first satellite, restarting the game.");
+					Main.restart();
+				} else {
+					System.out.println("Failed to place satellite after 1000 tries, giving up.");
+				}
 				return;
 			}
 
@@ -93,7 +98,7 @@ public class Satellite implements Pathable {
 			y_delta = (float) (Math.sin(perpendicularAngle) * offset);
 			for (Planet planet : Planet.planets) {
 				float dist = (float) Math.hypot(x + x_delta - planet.getCX(), y + y_delta - planet.getCY());
-				if (dist < planet.getWidth() / 2 + 50) {
+				if (dist < planet.getWidth() * 5 / 8 + 50) {
 					tries++;
 					continue while_loop; // Too close to a planet, try again
 				}

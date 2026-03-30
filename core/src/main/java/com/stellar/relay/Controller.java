@@ -9,7 +9,7 @@ import com.badlogic.gdx.math.MathUtils;
 import com.fazecast.jSerialComm.SerialPort;
 
 public class Controller {
-	public static final float MAX_INTERACTION_DISTANCE = 50;
+	public static final float MAX_INTERACTION_DISTANCE = 75;
 
 	private final Player player;
 
@@ -108,6 +108,11 @@ public class Controller {
 			velX++;
 		}
 
+		if (Gdx.input.isKeyJustPressed(Input.Keys.R) && Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
+			Main.restart();
+			return;
+		}
+
 		float targetAngle = (float) (Math.atan2(velY, velX) * MathUtils.radiansToDegrees + 360) % 360;
 
 		if (movementEnabled) {
@@ -197,7 +202,9 @@ public class Controller {
 		Pathable pathable = Pathable.getClosestPathable(getCX(), getCY());
 
 		if (lastPathable != null
-				&& lastPathable != pathable
+				&& (lastPathable != pathable
+						|| Math.hypot(lastPathable.getCX() - getCX(), lastPathable.getCY() - getCY())
+								> MAX_INTERACTION_DISTANCE)
 				&& lastPathable.getState() != Planet.State.SELECTED) {
 			lastPathable.setState(Planet.State.NONE);
 			lastPathable = null;
