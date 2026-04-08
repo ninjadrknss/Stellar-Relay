@@ -1,4 +1,4 @@
-package com.signal.rush;
+package com.stellar.relay;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -83,6 +83,14 @@ public class Satellite implements Pathable {
 					(float) Math.atan2(planet2.getCY() - planet1.getCY(), planet2.getCX() - planet1.getCX())
 							+ (float) Math.PI / 2;
 			float offset = 250 * ((float) Math.random() * 2 - 1) * ((float) Math.random() * 2 - 1);
+
+			if (tries > 100) {
+				planet1 = Planet.planets.get((int) (Math.random() * Planet.planets.size()));
+
+				while (planet2 == planet1) {
+					planet2 = Planet.planets.get((int) (Math.random() * Planet.planets.size()));
+				}
+			}
 
 			if (tries > 1000) {
 				if (GUI.score == 0) {

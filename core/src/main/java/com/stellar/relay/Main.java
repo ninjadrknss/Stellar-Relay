@@ -1,6 +1,6 @@
-package com.signal.rush;
+package com.stellar.relay;
 
-import static com.signal.rush.GUI.score;
+import static com.stellar.relay.GUI.score;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -32,7 +32,8 @@ public class Main extends ApplicationAdapter {
 
 	public enum GameState {
 		SPLASH,
-		TUTORIAL,
+		DIFFICULTY_SELECT,
+		STORY,
 		FREE_PLAY,
 		GAME_OVER
 	}
@@ -44,7 +45,10 @@ public class Main extends ApplicationAdapter {
 	private ShapeDrawer shapeDrawer;
 	private FitViewport viewport;
 
-	private Controller controller_left;
+	private static Controller controller_left;
+	private static Controller controller_right;
+
+	private static boolean leftControl = true;
 
 	private GUI gui;
 
@@ -71,6 +75,7 @@ public class Main extends ApplicationAdapter {
 		shapeDrawer = new ShapeDrawer(batch, region);
 
 		controller_left = new Controller(Player.LEFT);
+		controller_right = new Controller(Player.RIGHT);
 		gui = GUI.getInstance();
 		viewport = new FitViewport(Gdx.graphics.getWidth() / 10f, Gdx.graphics.getHeight() / 10f);
 
@@ -86,7 +91,15 @@ public class Main extends ApplicationAdapter {
 	public void render() {
 		switch (gameState) {
 			case SPLASH -> drawSplash();
-			case TUTORIAL -> drawTutorial();
+			case DIFFICULTY_SELECT -> {
+				input();
+				drawDifficultySelect();
+				batch.begin();
+				gui.drawDifficultySelect(batch);
+				batch.end();
+			}
+
+			case STORY -> drawTutorial();
 
 			case FREE_PLAY -> {
 				input();
@@ -111,7 +124,7 @@ public class Main extends ApplicationAdapter {
 			batch.end();
 
 			if (stateTransitionTimer > 1.5) {
-				if (gameState == GameState.GAME_OVER) restart();
+				if (nextState == GameState.STORY) restart();
 
 				gameState = nextState;
 				stateTimer = 0;
@@ -198,15 +211,63 @@ public class Main extends ApplicationAdapter {
 				(float) (Math.sin(stateTimer + Math.PI / 2) / 5));
 		splashMessage.draw(batch);
 
-		gui.drawSplash(batch);
+		gui.drawSplash(batch, stateTimer);
 		batch.end();
 
 		controller_left.input(false);
 		if (stateTimer > 2 && nextState == gameState && controller_left.isButton1Pressed()
 				|| stateTimer > 2 && nextState == gameState && controller_left.isButton2Pressed()) {
-			nextState = GameState.TUTORIAL;
+			nextState = GameState.DIFFICULTY_SELECT;
+			stateTransitionTimer = 0;
+			leftControl = true;
+		}
+
+		controller_right.input(false);
+		if (stateTimer > 2 && nextState == gameState && controller_right.isButton1Pressed()
+				|| stateTimer > 2 && nextState == gameState && controller_right.isButton2Pressed()) {
+			nextState = GameState.DIFFICULTY_SELECT;
+			stateTransitionTimer = 0;
+			leftControl = false;
+		}
+	}
+
+	private void drawDifficultySelect() {
+		ScreenUtils.clear(0.15f, 0.15f, 0.15f, 1f);
+
+		batch.begin();
+
+		shapeDrawer.setColor(Color.WHITE);
+
+		shapeDrawer.filledRectangle(
+				Gdx.graphics.getWidth() / 4f - 200, Gdx.graphics.getHeight() / 2f - 300, 400, 600);
+
+		shapeDrawer.filledRectangle(
+				Gdx.graphics.getWidth() / 2f - 200, Gdx.graphics.getHeight() / 2f - 300, 400, 600);
+
+		shapeDrawer.filledRectangle(
+				3 * Gdx.graphics.getWidth() / 4f - 200, Gdx.graphics.getHeight() / 2f - 300, 400, 600);
+
+		int selected =
+				(int)
+						((leftControl ? controller_left : controller_right).getCX()
+								/ Gdx.graphics.getWidth()
+								* 3);
+
+		shapeDrawer.setColor(0.15f, 0.15f, 0.2f, 0.7f);
+		shapeDrawer.filledRectangle(
+				(selected + 1) * Gdx.graphics.getWidth() / 4f - 200,
+				Gdx.graphics.getHeight() / 2f - 300,
+				400,
+				600);
+
+		if (leftControl && controller_left.isButton1Pressed() && nextState == gameState
+				|| !leftControl && controller_right.isButton1Pressed() && nextState == gameState) {
+			difficulty = Difficulty.values()[selected];
+			nextState = GameState.STORY;
 			stateTransitionTimer = 0;
 		}
+
+		batch.end();
 	}
 
 	private void drawTutorial() {
@@ -228,6 +289,7 @@ public class Main extends ApplicationAdapter {
 
 		batch.begin();
 		controller_left.draw(batch);
+		controller_right.draw(batch);
 		batch.end();
 	}
 
@@ -261,6 +323,16 @@ public class Main extends ApplicationAdapter {
 				|| nextState == gameState && controller_left.isButton2Pressed()) {
 			nextState = GameState.SPLASH;
 			stateTransitionTimer = 0;
+			leftControl = true;
+		}
+
+		controller_right.input(false);
+		if (stateTimer > 15 && nextState == gameState
+				|| nextState == gameState && controller_right.isButton1Pressed()
+				|| nextState == gameState && controller_right.isButton2Pressed()) {
+			nextState = GameState.SPLASH;
+			stateTransitionTimer = 0;
+			leftControl = false;
 		}
 
 		gui.drawGameOver(batch);
@@ -276,10 +348,15 @@ public class Main extends ApplicationAdapter {
 
 	private void input() {
 		controller_left.input(true);
+		controller_right.input(true);
 	}
 
 	private void logic() {
 		messageSpawnTimer -= Gdx.graphics.getDeltaTime();
+		if (Message.isClear() && messageSpawnTimer > 5)
+			messageSpawnTimer =
+					1.5f; // Spawn new items soon if all messages are cleared to prevent long boring waits
+
 		if (score < 300) {
 			if (Message.messages.isEmpty()) {
 				Planet.spawnNewPlanet();
@@ -291,18 +368,19 @@ public class Main extends ApplicationAdapter {
 					Message.spawnNewMessage();
 				}
 
-				messageSpawnTimer = (float) (Math.random() * 20f);
+				messageSpawnTimer = (float) (Math.random() * 60) + 60;
 			}
-		} else if (messageSpawnTimer <= 0 || Message.messages.isEmpty()) {
+		} else if (messageSpawnTimer <= 0) {
 			System.out.println("Spawning new items...");
-			messageSpawnTimer = (float) (Math.random() * 30f / difficulty.multiplier);
+			messageSpawnTimer =
+					(float) (Math.random() * 60f / difficulty.multiplier / Math.sqrt(score / 100f)) + 15;
 
-			if (Math.random() > Math.sqrt(Planet.planets.size()) / 10) Planet.spawnNewPlanet();
+			if (Math.random() > Math.sqrt(Planet.planets.size()) / 20) Planet.spawnNewPlanet();
 			for (int i = 0; i < Math.log(Planet.planets.size()) * (1.5 * Math.random()); i++) {
 				Satellite.spawnNewSatellite();
 			}
 
-			for (int i = 0; i < 2 * Math.log(Planet.planets.size()); i++) {
+			for (int i = -1; i < Math.log(Planet.planets.size()) / 2; i++) {
 				Message.spawnNewMessage();
 			}
 		}
@@ -324,6 +402,15 @@ public class Main extends ApplicationAdapter {
 		Arrays.fill(Planet.planetTypeUsed, false);
 		Message.messages.clear();
 		Path.paths.clear();
+
+		controller_left.active = false;
+		controller_right.active = false;
+
+		if (leftControl) {
+			controller_left.active = true;
+		} else {
+			controller_right.active = true;
+		}
 
 		for (int i = 0; i < 2; i++) {
 			Planet.spawnNewPlanet();

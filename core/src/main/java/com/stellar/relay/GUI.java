@@ -1,4 +1,4 @@
-package com.signal.rush;
+package com.stellar.relay;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Batch;
@@ -42,18 +42,36 @@ public class GUI {
 		generator.dispose();
 	}
 
-	public void drawSplash(Batch batch) {
+	public void drawSplash(Batch batch, float stateTimer) {
 		font96.draw(
 				batch,
-				"Signal Rush",
+				"Stellar Relay",
 				Gdx.graphics.getWidth() / 2f - 375f,
-				Gdx.graphics.getHeight() / 2f + 50f);
+				Gdx.graphics.getHeight() / 2f + 55f + 8f * (float) Math.cos(stateTimer * 2f + 0.7f));
 
 		font36.draw(
 				batch,
 				"Press Any Button\n       to Start",
 				Gdx.graphics.getWidth() / 2f - 200f,
-				Gdx.graphics.getHeight() / 2f - 100f);
+				Gdx.graphics.getHeight() / 2f - 100f + 5f * (float) Math.cos(stateTimer * 2f));
+	}
+
+	public void drawDifficultySelect(Batch batch) {
+		font60.draw(
+				batch,
+				"Select Difficulty",
+				Gdx.graphics.getWidth() / 2f - 375f,
+				Gdx.graphics.getHeight() - 55f);
+
+		font36.draw(
+				batch,
+				"Press the Red Button\n        to Select",
+				Gdx.graphics.getWidth() / 2f - 275f,
+				100f);
+
+		font24.draw(batch, "Easy", Gdx.graphics.getWidth() / 4f - 50f, 200f);
+		font24.draw(batch, "Medium", Gdx.graphics.getWidth() / 2f - 50f, 200f);
+		font24.draw(batch, "Hard", 3 * Gdx.graphics.getWidth() / 4f - 50f, 200f);
 	}
 
 	public void drawFreePlay(Batch batch) {

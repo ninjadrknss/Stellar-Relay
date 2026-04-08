@@ -1,4 +1,4 @@
-package com.signal.rush;
+package com.stellar.relay;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -23,7 +23,11 @@ public class Controller {
 	private boolean button2Pressed = false;
 	private boolean button2Prev = false;
 
+	public boolean active = false;
+
+	private float velocity = 0;
 	private float angle = 0;
+	private float angleVel = 0;
 
 	private Path path = null;
 
@@ -39,29 +43,36 @@ public class Controller {
 				Gdx.graphics.getWidth() / 2f + 400 * (player == Player.LEFT ? -1 : 1),
 				Gdx.graphics.getHeight() / 2f);
 
-		SerialPort[] ports = SerialPort.getCommPorts();
+		if (picoPort == null) {
+			SerialPort[] ports = SerialPort.getCommPorts();
 
-		if (ports[ports.length - 1].getSystemPortName().contains("usb")
-				|| ports[ports.length - 1].getSystemPortName().contains("com")) {
-			picoPort = ports[ports.length - 1];
-			picoPort.setBaudRate(9600);
-			picoPort.setNumDataBits(8);
-			picoPort.setNumStopBits(SerialPort.ONE_STOP_BIT);
-			picoPort.setParity(SerialPort.NO_PARITY);
+			if (ports[ports.length - 1].getSystemPortName().contains("usb")
+					|| ports[ports.length - 1].getSystemPortName().contains("com")) {
+				picoPort = ports[ports.length - 1];
+				picoPort.setBaudRate(9600);
+				picoPort.setNumDataBits(8);
+				picoPort.setNumStopBits(SerialPort.ONE_STOP_BIT);
+				picoPort.setParity(SerialPort.NO_PARITY);
 
-			picoPort.openPort();
-			System.out.println("Pico found on port: " + picoPort.getSystemPortName());
-		} else {
-			System.out.println("Pico not found. Available ports:");
-			for (int i = 0; i < ports.length; i++) {
-				System.out.println(i + ": " + ports[i].getSystemPortName());
+				picoPort.openPort();
+				System.out.println("Pico found on port: " + picoPort.getSystemPortName());
+			} else {
+				System.out.println("Pico not found. Available ports:");
+				for (int i = 0; i < ports.length; i++) {
+					System.out.println(i + ": " + ports[i].getSystemPortName());
+				}
 			}
 		}
 	}
 
 	public void input(boolean movementEnabled) {
-		float speed = 300f * Gdx.graphics.getDeltaTime();
-		double rotSpeed = 200.0f * Gdx.graphics.getDeltaTime();
+		float speed =
+				300f
+						* Gdx.graphics.getDeltaTime()
+						* (Main.gameState == Main.GameState.DIFFICULTY_SELECT ? 8f : 1f);
+		float accelerationTime = 1f;
+		float springStrength = 50f;
+		float damping = 0.84f;
 
 		boolean[] inputs = new boolean[6]; // Up, Down, Left, Right, button1, button2
 
@@ -88,47 +99,70 @@ public class Controller {
 		int velY = 0;
 
 		if (player == Player.LEFT && Gdx.input.isKeyPressed(Input.Keys.W)
-				|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.UP)
+				|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.O)
 				|| inputs[0]) {
 			velY++;
 		}
 		if (player == Player.LEFT && Gdx.input.isKeyPressed(Input.Keys.S)
-				|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.DOWN)
+				|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.L)
 				|| inputs[1]) {
 			velY--;
 		}
 		if (player == Player.LEFT && Gdx.input.isKeyPressed(Input.Keys.A)
-				|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.LEFT)
+				|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.K)
 				|| inputs[2]) {
 			velX--;
 		}
 		if (player == Player.LEFT && Gdx.input.isKeyPressed(Input.Keys.D)
-				|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.RIGHT)
+				|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.SEMICOLON)
 				|| inputs[3]) {
 			velX++;
 		}
 
-		if (Gdx.input.isKeyJustPressed(Input.Keys.R) && Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
+		if (!active && (velX != 0 || velY != 0)) {
+			active = true;
+		}
+
+		if (Main.DEBUG
+				&& Gdx.input.isKeyJustPressed(Input.Keys.R)
+				&& Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
 			Main.restart();
 			return;
 		}
 
-		float targetAngle = (float) (Math.atan2(velY, velX) * MathUtils.radiansToDegrees + 360) % 360;
+		float targetAngle = (float) Math.atan2(velY, velX);
+
+		float angleDiff = targetAngle - angle;
+		angleDiff = (float) Math.atan2(Math.sin(angleDiff), Math.cos(angleDiff));
+
+		if (velX != 0 || velY != 0) {
+			angleVel += angleDiff * springStrength * Gdx.graphics.getDeltaTime() / damping;
+			velocity =
+					Math.min(
+							velocity + speed / accelerationTime, speed); // accelerate to max speed over 2 seconds
+		} else {
+			targetAngle = angle;
+			velocity *= 0.92f;
+		}
+		if (velocity < 0.01f) velocity = 0; // prevent drifting when very slow
+
+		angleVel *= damping;
+		angle += angleVel * Gdx.graphics.getDeltaTime();
+		angle = (float) Math.atan2(Math.sin(angle), Math.cos(angle));
+
+		if (Math.abs(angleDiff) < 0.01f && Math.abs(angleVel) < 0.01f) { // close enough
+			angle = targetAngle;
+			angleVel = 0.0f;
+		}
 
 		if (movementEnabled) {
 			sprite.translateX(
-					velX != 0 ? (float) (Math.cos(targetAngle * MathUtils.degreesToRadians) * speed) : 0);
-			sprite.translateY((float) (Math.sin(targetAngle * MathUtils.degreesToRadians) * speed));
-		}
+					(float) (Math.cos(targetAngle + angleVel * Gdx.graphics.getDeltaTime()) * velocity));
+			sprite.translateY(
+					(float) (Math.sin(targetAngle + angleVel * Gdx.graphics.getDeltaTime()) * velocity));
 
-		if (velX == 0 && velY == 0) {
-			targetAngle = angle; // Don't change angle if not moving
+			sprite.setRotation(angle * MathUtils.radiansToDegrees);
 		}
-		angle =
-				MathUtils.lerpAngleDeg(
-						angle, targetAngle, (float) rotSpeed / (Math.abs(targetAngle - angle) + 0.01f));
-
-		if (movementEnabled) sprite.setRotation(angle);
 
 		if (sprite.getX() < 0) {
 			sprite.setX(0);
@@ -144,13 +178,17 @@ public class Controller {
 
 		boolean newButton1Pressed =
 				player == Player.LEFT && Gdx.input.isKeyPressed(Input.Keys.Q)
-						|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.COMMA)
+						|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.I)
 						|| inputs[4];
 
 		boolean newButton2Pressed =
 				player == Player.LEFT && Gdx.input.isKeyPressed(Input.Keys.E)
-						|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.PERIOD)
+						|| player == Player.RIGHT && Gdx.input.isKeyPressed(Input.Keys.P)
 						|| inputs[5];
+
+		if (!active && (newButton1Pressed || newButton2Pressed)) {
+			active = true;
+		}
 
 		if (newButton1Pressed && !button1Prev) {
 			button1Pressed = true;
@@ -210,7 +248,7 @@ public class Controller {
 			lastPathable = null;
 		}
 
-		sprite.draw(batch);
+		if (active) sprite.draw(batch);
 
 		if (pathable == null
 				|| path == null

@@ -1,4 +1,4 @@
-package com.signal.rush;
+package com.stellar.relay;
 
 public interface Pathable {
 	enum State {

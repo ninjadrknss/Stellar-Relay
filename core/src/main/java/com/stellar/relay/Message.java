@@ -1,4 +1,4 @@
-package com.signal.rush;
+package com.stellar.relay;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -207,7 +207,8 @@ public class Message {
 		new Message(source, destination);
 	}
 
-	public static void clear() {
-		messages.clear();
+	public static boolean isClear() {
+		return messages.isEmpty()
+				|| Message.messages.stream().noneMatch(message -> message.state == State.AWAITING);
 	}
 }

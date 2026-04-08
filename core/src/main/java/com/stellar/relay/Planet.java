@@ -1,4 +1,4 @@
-package com.signal.rush;
+package com.stellar.relay;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -58,7 +58,7 @@ public class Planet implements Pathable {
 					default -> 100; // Normal planets
 				};
 
-		this.scale = 2.5f * (float) Math.exp(-0.15 + 0.25 * rand.nextGaussian());
+		this.scale = 2.5f * (float) Math.exp(-0.15 + 0.125 * rand.nextGaussian());
 
 		planets.add(this);
 	}
