@@ -146,8 +146,8 @@ public class Path {
 	public void add(Pathable p) {
 		if (!path.contains(p)
 				&& !isComplete
-				&& (p instanceof Satellite s && s.path == null || p.equals(destination))) {
-			if (p instanceof Satellite s) s.path = this;
+				&& (p instanceof Satellite s && s.path() == null || p.equals(destination))) {
+			if (p instanceof Satellite s) s.setPath(this);
 			path.add(p);
 		} else {
 			System.out.println("Invalid path element: " + p);
@@ -163,7 +163,7 @@ public class Path {
 		isComplete = false; // Mark the path as incomplete if an element is removed
 		if (path.size() > 1) {
 			Pathable p = path.removeLast();
-			if (p instanceof Satellite s) s.path = null;
+			if (p instanceof Satellite s) s.setPath(null);
 		} else {
 			drop(); // If there are only an element left (the source planet), drop the path entirely
 			return true;
@@ -205,7 +205,7 @@ public class Path {
 		if (p instanceof Planet planet && !destination.equals(planet))
 			return false; // is not a planet other than the destination
 
-		if (p instanceof Satellite satellite && satellite.path != null)
+		if (p instanceof Satellite satellite && satellite.path() != null)
 			return false; // is not a satellite that is already part of another path
 
 		return true;

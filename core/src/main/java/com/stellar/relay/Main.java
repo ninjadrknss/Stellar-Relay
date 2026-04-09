@@ -183,7 +183,7 @@ public class Main extends ApplicationAdapter {
 				800);
 
 		if (splashSatellite == null) {
-			splashSatellite = new Sprite(new Texture("PLACEHOLDER_Satellite.png"));
+			splashSatellite = new Sprite(new Texture("sprites/satellite_signal.png"));
 
 			splashSatellite.setPosition(
 					Gdx.graphics.getWidth() * 3 / 4f - 50, Gdx.graphics.getHeight() - 450);
@@ -191,7 +191,7 @@ public class Main extends ApplicationAdapter {
 			splashSatellite.setOriginCenter();
 		}
 
-		splashSatellite.setRotation((float) (Math.sin(stateTimer / 2) * 15));
+		splashSatellite.setRotation((float) (Math.sin(stateTimer / 2) * 15) + 120);
 		splashSatellite.translate(
 				(float) (Math.cos(stateTimer) / 3), (float) (Math.sin(stateTimer) / 3));
 		splashSatellite.draw(batch);
@@ -265,8 +265,10 @@ public class Main extends ApplicationAdapter {
 				400,
 				600);
 
-		if (leftControl && controller_left.isButton1Pressed() && nextState == gameState
-				|| !leftControl && controller_right.isButton1Pressed() && nextState == gameState) {
+		if (nextState == gameState
+				&& stateTimer > 2
+				&& (leftControl && controller_left.isButton1Pressed()
+						|| !leftControl && controller_right.isButton1Pressed())) {
 			difficulty = Difficulty.values()[selected];
 			nextState = GameState.STORY;
 			stateTransitionTimer = 0;
@@ -390,10 +392,7 @@ public class Main extends ApplicationAdapter {
 		controller_right.draw(batch);
 		batch.end();
 
-		GUI.tutorialStep =
-				(int)
-						Math.min(
-								10, (stateTimer - 2) / 8); // Advance tutorial step every 15 seconds, up to step 10
+		GUI.tutorialStep = (int) Math.min(10, (stateTimer - 2) / 8);
 	}
 
 	private void drawGameOver() {
@@ -447,6 +446,21 @@ public class Main extends ApplicationAdapter {
 	public void dispose() {
 		batch.dispose();
 		shapeRenderer.dispose();
+
+		if (backgroundStars != null) backgroundStars.getTexture().dispose();
+		if (splashSatellite != null) splashSatellite.getTexture().dispose();
+		if (splashMessage != null) splashMessage.getTexture().dispose();
+		if (easyMessage != null) easyMessage.getTexture().dispose();
+		if (mediumMessages != null) {
+			for (Sprite msg : mediumMessages) {
+				if (msg != null) msg.getTexture().dispose();
+			}
+		}
+		if (hardMessages != null) {
+			for (Sprite msg : hardMessages) {
+				if (msg != null) msg.getTexture().dispose();
+			}
+		}
 	}
 
 	private void input() {

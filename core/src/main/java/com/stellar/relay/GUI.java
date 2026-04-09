@@ -7,12 +7,7 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.*;
 
 public class GUI {
-	private final BitmapFont font96;
-	private final BitmapFont font60;
-	private final BitmapFont font48;
-	private final BitmapFont font36;
-	private final BitmapFont font24;
-	private final BitmapFont font12;
+	private final BitmapFont font96, font60, font48, font36, font24, font12;
 
 	public static int score = 0;
 	public static int tutorialStep = 0;

@@ -36,8 +36,13 @@ public class Controller {
 	public Controller(Player player) {
 		this.player = player;
 
-		sprite = new Sprite(new Texture("PLACEHOLDER_Spaceship.png"));
-		sprite.setSize(70, 70);
+		sprite =
+				new Sprite(
+						new Texture(
+								player == Player.LEFT
+										? "sprites/spaceship_black.png"
+										: "sprites/spaceship_red.png"));
+		sprite.setSize(90, 90);
 		sprite.setOrigin(sprite.getWidth() / 2 - 10, sprite.getHeight() / 2);
 		sprite.setPosition(
 				Gdx.graphics.getWidth() / 2f + 400 * (player == Player.LEFT ? -1 : 1),
@@ -161,7 +166,7 @@ public class Controller {
 			sprite.translateY(
 					(float) (Math.sin(targetAngle + angleVel * Gdx.graphics.getDeltaTime()) * velocity));
 
-			sprite.setRotation(angle * MathUtils.radiansToDegrees);
+			sprite.setRotation(angle * MathUtils.radiansToDegrees - 90);
 		}
 
 		if (sprite.getX() < 0) {

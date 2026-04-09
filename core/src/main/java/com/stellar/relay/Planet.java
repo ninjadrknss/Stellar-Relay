@@ -13,7 +13,6 @@ public class Planet implements Pathable {
 	private final int type;
 	private final float x;
 	private final float y;
-	private final float width;
 	private final float scale;
 
 	private State state = State.NONE;
@@ -29,18 +28,13 @@ public class Planet implements Pathable {
 	public static void loadTextures() {
 		if (planetTextures[0] != null) return; // Already loaded
 
-		Texture sheet = new Texture("PLACEHOLDER_planets.png");
-		int s = 105;
-		for (int r = 0; r < 3; r++) {
+		Texture sheet = new Texture("sprites/planets.png");
+		int s = 100;
+		for (int r = 0; r < 4; r++) {
 			for (int c = 0; c < 4; c++) {
-				planetTextures[r * 4 + c] = new TextureRegion(sheet, 44 + c * s, 44 + r * s, 100, 100);
+				planetTextures[r * 4 + c] = new TextureRegion(sheet, c * s, r * s, s, s);
 			}
 		}
-
-		planetTextures[12] = new TextureRegion(sheet, 40, 44 + 3 * s, s, s); // Purple
-		planetTextures[13] = new TextureRegion(sheet, 45 + s, 44 + 3 * s, 90, s); // Asteroid
-		planetTextures[14] = new TextureRegion(sheet, 35 + 2 * s, 44 + 3 * s, 125, s); // Saturn
-		planetTextures[15] = new TextureRegion(sheet, 47 + 3 * s, 44 + 3 * s, 95, s); // Nibbled
 	}
 
 	private Planet(float x, float y, int type) {
@@ -49,14 +43,6 @@ public class Planet implements Pathable {
 		this.x = x;
 		this.y = y;
 		this.type = type;
-
-		this.width =
-				switch (type) {
-					case 13 -> 90; // Asteroid
-					case 14 -> 125; // Saturn
-					case 15 -> 95; // Nibbled
-					default -> 100; // Normal planets
-				};
 
 		this.scale = 2.5f * (float) Math.exp(-0.15 + 0.125 * rand.nextGaussian());
 
@@ -175,14 +161,12 @@ public class Planet implements Pathable {
 			batch.end();
 			shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
 			shapeRenderer.setColor(state == State.HOVERED ? Color.YELLOW : Color.GREEN);
-			float rad = (width * scale) / 2;
-			shapeRenderer.circle(x - (50 - width / 2) + rad - (type == 14 ? 16 : 0), y + rad, rad);
+			shapeRenderer.circle(x + 50 * scale, y + 50 * scale, (type == 14 ? 52 : 40) * scale);
 			shapeRenderer.end();
 			batch.begin();
 		}
 
-		batch.draw(
-				planetTextures[type], x - (type == 14 ? 8 : 0), y, 0, 0, width, 100, scale, scale, 0);
+		batch.draw(planetTextures[type], x, y, 0, 0, 100, 100, scale, scale, 0);
 	}
 
 	public static void drawAll(Batch batch, ShapeRenderer shapeRenderer) {
@@ -203,7 +187,7 @@ public class Planet implements Pathable {
 
 	@Override
 	public float getCX() {
-		return x + width / 2 * scale - (type == 14 ? 8 : 0);
+		return x + (float) 100 / 2 * scale;
 	}
 
 	@Override

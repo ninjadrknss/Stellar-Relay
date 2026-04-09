@@ -89,8 +89,8 @@ public class Message {
 				progress = 1;
 				state = State.DELIVERED;
 				for (Satellite satellite : Satellite.satellites) {
-					if (satellite.path == path) {
-						satellite.path = null; // Clear any paths that are currently routing this message
+					if (satellite.path() == path) {
+						satellite.setPath(null); // Clear any paths that are currently routing this message
 					}
 				}
 				path.delete();

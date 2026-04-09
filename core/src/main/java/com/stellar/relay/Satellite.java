@@ -6,27 +6,44 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import java.util.ArrayList;
 
 public class Satellite implements Pathable {
 	private Sprite sprite;
+	private static Texture activeTexture;
+	private static Texture inactiveTexture;
 	private State state = State.NONE;
 
-	private float angle = (float) (Math.random() * 360);
+	private final float angle;
 	private float anglePeriod = (float) (Math.random() * 2 + 1); // Random period for orbiting
 
 	public static ArrayList<Satellite> satellites = new ArrayList<>();
 
-	public Path path = null;
+	private Path path = null;
 
-	public Satellite(float x, float y) {
-		sprite = new Sprite(new Texture("PLACEHOLDER_Satellite.png"));
-		sprite.setSize(80, 80);
+	public Satellite(float x, float y, float angle) {
+		if (activeTexture == null) activeTexture = new Texture("sprites/satellite_signal.png");
+		if (inactiveTexture == null) inactiveTexture = new Texture("sprites/satellite.png");
+
+		sprite = new Sprite(inactiveTexture);
+		sprite.setSize(70, 70);
 		sprite.setOriginCenter();
 		sprite.setPosition(x, y);
-		sprite.setRotation(angle); // Random initial rotation
+		sprite.setRotation(angle);
+
+		this.angle = angle;
 
 		satellites.add(this);
+	}
+
+	public Path path() {
+		return path;
+	}
+
+	public void setPath(Path path) {
+		this.path = path;
+		sprite.setTexture(path != null ? activeTexture : inactiveTexture);
 	}
 
 	private void draw(Batch batch, ShapeRenderer shapeRenderer) {
@@ -73,16 +90,19 @@ public class Satellite implements Pathable {
 		float x = (planet1.getCX() + planet2.getCX()) / 2;
 		float y = (planet1.getCY() + planet2.getCY()) / 2;
 
-		float x_delta, y_delta;
+		float x_delta, y_delta, perpendicularAngle;
 
 		int tries = 0;
 
 		while_loop:
 		while (true) {
-			float perpendicularAngle =
+			perpendicularAngle =
 					(float) Math.atan2(planet2.getCY() - planet1.getCY(), planet2.getCX() - planet1.getCX())
 							+ (float) Math.PI / 2;
-			float offset = 250 * ((float) Math.random() * 2 - 1) * ((float) Math.random() * 2 - 1);
+
+			float offset = 150 * ((float) Math.random()) * ((float) Math.random() * 2 - 1);
+			offset = MathUtils.clamp(offset, -100, 100);
+			offset += offset < 0 ? -75 : 75;
 
 			if (tries > 100) {
 				planet1 = Planet.planets.get((int) (Math.random() * Planet.planets.size()));
@@ -126,7 +146,9 @@ public class Satellite implements Pathable {
 			break;
 		}
 
-		new Satellite(x + x_delta, y + y_delta);
+		float angle = (float) Math.atan2(y_delta, x_delta);
+
+		new Satellite(x + x_delta, y + y_delta, angle * MathUtils.radiansToDegrees + 90);
 	}
 
 	@Override
