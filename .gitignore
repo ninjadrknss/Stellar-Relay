@@ -28,4 +28,5 @@ replay_pid*
 .idea
 repo.html
 tree.txt
+game_log.csv
 *.DS_Store

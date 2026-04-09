@@ -38,7 +38,7 @@ public class Main extends ApplicationAdapter {
 		GAME_OVER
 	}
 
-	public static final boolean DEBUG = true;
+	public static final boolean DEBUG = false; // todo: change
 
 	private PolygonSpriteBatch batch;
 	private ShapeRenderer shapeRenderer;
@@ -124,7 +124,11 @@ public class Main extends ApplicationAdapter {
 			batch.end();
 
 			if (stateTransitionTimer > 1.5) {
-				if (nextState == GameState.STORY) restart();
+				if (nextState == GameState.FREE_PLAY) {
+					Logger.start();
+					restart();
+				}
+				if (nextState == GameState.GAME_OVER) Logger.end();
 
 				gameState = nextState;
 				stateTimer = 0;
@@ -270,7 +274,7 @@ public class Main extends ApplicationAdapter {
 				&& (leftControl && controller_left.isButton1Pressed()
 						|| !leftControl && controller_right.isButton1Pressed())) {
 			difficulty = Difficulty.values()[selected];
-			nextState = GameState.STORY;
+			nextState = GameState.FREE_PLAY; // TODO: implement story
 			stateTransitionTimer = 0;
 		}
 
@@ -391,6 +395,9 @@ public class Main extends ApplicationAdapter {
 		controller_left.draw(batch);
 		controller_right.draw(batch);
 		batch.end();
+
+		Confetti.update(Gdx.graphics.getDeltaTime());
+		Confetti.draw(shapeRenderer);
 
 		GUI.tutorialStep = (int) Math.min(10, (stateTimer - 2) / 8);
 	}

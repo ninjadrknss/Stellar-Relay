@@ -97,7 +97,7 @@ public class Message {
 				GUI.score +=
 						(int) (100 / Main.difficulty.multiplier); // Award points for successful delivery
 				if (Main.DEBUG) System.out.println("Message delivered to " + destination);
-				// TODO: add some visual effect for delivery, like a burst or confetti?
+				Confetti.spawn(destination.getCX(), destination.getCY() + 25);
 			}
 
 			Vector2 position = path.positionAlongPath(progress);
