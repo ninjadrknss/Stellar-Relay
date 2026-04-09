@@ -84,4 +84,8 @@ public class Confetti {
 
 		shapeRenderer.end();
 	}
+
+	public static int size() {
+		return particles.size;
+	}
 }

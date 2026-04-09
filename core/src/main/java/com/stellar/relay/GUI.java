@@ -39,6 +39,7 @@ public class GUI {
 	}
 
 	public void drawSplash(Batch batch, float stateTimer) {
+		batch.begin();
 		font96.draw(
 				batch,
 				"Stellar Relay",
@@ -50,9 +51,11 @@ public class GUI {
 				"Press Any Button\n       to Start",
 				Gdx.graphics.getWidth() / 2f - 200f,
 				Gdx.graphics.getHeight() / 2f - 100f + 5f * (float) Math.cos(stateTimer * 2f));
+		batch.end();
 	}
 
 	public void drawDifficultySelect(Batch batch) {
+		batch.begin();
 		font60.draw(
 				batch,
 				"Select Difficulty",
@@ -74,9 +77,18 @@ public class GUI {
 		font24.draw(batch, "Easy", Gdx.graphics.getWidth() / 4f - 50f, 200f);
 		font24.draw(batch, "Medium", Gdx.graphics.getWidth() / 2f - 60f, 200f);
 		font24.draw(batch, "Hard", 3 * Gdx.graphics.getWidth() / 4f - 50f, 200f);
+		batch.end();
+	}
+
+	public void drawStory(Batch batch) {
+		batch.begin();
+		font12.draw(
+				batch, "Press the Red Button\nto fast forward", Gdx.graphics.getWidth() - 200f, 35f);
+		batch.end();
 	}
 
 	public void drawFreePlay(Batch batch) {
+		batch.begin();
 		switch (tutorialStep) {
 			case 0 ->
 					font24.draw(
@@ -148,23 +160,27 @@ public class GUI {
 		}
 
 		if (Main.DEBUG) {
-			font12.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, 120);
+			font12.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, 160);
 			font12.draw(
 					batch,
 					"Memory: %5dkb"
 							.formatted(
 									(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1000),
 					10,
-					100);
+					140);
 
-			font12.draw(batch, "Satellites: " + Satellite.satellites.size(), 10, 80);
-			font12.draw(batch, "Planets: " + Planet.planets.size(), 10, 60);
-			font12.draw(batch, "Messages: " + Message.messages.size(), 10, 40);
-			font12.draw(batch, "Paths: " + Path.paths.size(), 10, 20);
+			font12.draw(batch, "Satellites: " + Satellite.satellites.size(), 10, 120);
+			font12.draw(batch, "Planets: " + Planet.planets.size(), 10, 100);
+			font12.draw(batch, "Messages: " + Message.messages.size(), 10, 80);
+			font12.draw(batch, "Paths: " + Path.paths.size(), 10, 60);
+			font12.draw(batch, "Tutorial Step: " + tutorialStep, 10, 40);
+			font12.draw(batch, "Confetti: " + Confetti.size(), 10, 20);
 		}
+		batch.end();
 	}
 
 	public void drawGameOver(Batch batch) {
+		batch.begin();
 		font96.draw(
 				batch,
 				"Game Over!",
@@ -182,5 +198,6 @@ public class GUI {
 				"Press Any Button\n   to Play Again",
 				Gdx.graphics.getWidth() / 2f - 140f,
 				Gdx.graphics.getHeight() / 2f - 155f);
+		batch.end();
 	}
 }

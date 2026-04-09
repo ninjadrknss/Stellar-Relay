@@ -90,23 +90,25 @@ public class Main extends ApplicationAdapter {
 	@Override
 	public void render() {
 		switch (gameState) {
-			case SPLASH -> drawSplash();
+			case SPLASH -> {
+				drawSplash();
+				gui.drawSplash(batch, stateTimer);
+			}
 			case DIFFICULTY_SELECT -> {
 				input();
 				drawDifficultySelect();
-				batch.begin();
 				gui.drawDifficultySelect(batch);
-				batch.end();
 			}
 
-			case STORY -> drawStory();
+			case STORY -> {
+				drawStory();
+				gui.drawStory(batch);
+			}
 
 			case FREE_PLAY -> {
 				input();
 				drawFreePlay();
-				batch.begin();
 				gui.drawFreePlay(batch);
-				batch.end();
 				logic();
 			}
 
@@ -214,8 +216,6 @@ public class Main extends ApplicationAdapter {
 				(float) (Math.cos(stateTimer + Math.PI / 2) / 5),
 				(float) (Math.sin(stateTimer + Math.PI / 2) / 5));
 		splashMessage.draw(batch);
-
-		gui.drawSplash(batch, stateTimer);
 		batch.end();
 
 		controller_left.input(false);
@@ -274,7 +274,7 @@ public class Main extends ApplicationAdapter {
 				&& (leftControl && controller_left.isButton1Pressed()
 						|| !leftControl && controller_right.isButton1Pressed())) {
 			difficulty = Difficulty.values()[selected];
-			nextState = GameState.FREE_PLAY; // TODO: implement story
+			nextState = GameState.STORY;
 			stateTransitionTimer = 0;
 		}
 
@@ -374,14 +374,48 @@ public class Main extends ApplicationAdapter {
 		batch.end();
 	}
 
+	private static Sprite[] storyPanels;
+	private static final float secsPerPanel = 5;
+
 	private void drawStory() {
-		if (stateTimer > 2 && nextState == gameState) {
-			nextState = GameState.FREE_PLAY;
-			stateTransitionTimer = 0;
-			return;
+		if (storyPanels == null) {
+			storyPanels = new Sprite[6];
+			for (int i = 0; i < storyPanels.length; i++) {
+				storyPanels[i] = new Sprite(new Texture("story/panel" + (i + 1) + ".png"));
+				storyPanels[i].setPosition(
+						(i % 3) * (Gdx.graphics.getWidth() - 200) / 3f + 100,
+						Gdx.graphics.getHeight() / 2f + (i >= 3 ? -470 : 25));
+				storyPanels[i].setSize(450, 450);
+			}
 		}
 
-		ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1f);
+		ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
+		batch.begin();
+		for (int i = 0; i < storyPanels.length; i++) {
+			if (stateTimer > i * secsPerPanel) {
+				storyPanels[i].draw(
+						batch,
+						stateTimer > (i + 1) * secsPerPanel
+								? 1
+								: Math.min(2 * (stateTimer - i * 5) / secsPerPanel, 1));
+			}
+		}
+		batch.end();
+
+		controller_left.input(false);
+		controller_right.input(false);
+		if (stateTimer % secsPerPanel > 0.75
+				&& (leftControl
+								&& (controller_left.isButton1Pressed() || controller_left.isButton2Pressed())
+						|| !leftControl
+								&& (controller_right.isButton1Pressed() || controller_right.isButton2Pressed()))) {
+			stateTimer = ((int) (stateTimer / secsPerPanel) + 1) * secsPerPanel;
+		}
+
+		if (stateTimer > 8 * secsPerPanel && nextState == gameState) {
+			nextState = GameState.FREE_PLAY;
+			stateTransitionTimer = 0;
+		}
 	}
 
 	private void drawFreePlay() {
