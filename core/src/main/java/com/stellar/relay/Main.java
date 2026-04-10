@@ -4,6 +4,7 @@ import static com.stellar.relay.GUI.score;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -38,7 +39,7 @@ public class Main extends ApplicationAdapter {
 		GAME_OVER
 	}
 
-	public static final boolean DEBUG = true; // todo: change
+	public static final boolean DEBUG = false;
 
 	private PolygonSpriteBatch batch;
 	private ShapeRenderer shapeRenderer;
@@ -112,7 +113,10 @@ public class Main extends ApplicationAdapter {
 				logic();
 			}
 
-			case GAME_OVER -> drawGameOver();
+			case GAME_OVER -> {
+				drawGameOver();
+				gui.drawGameOver(batch);
+			}
 		}
 		stateTimer += Gdx.graphics.getDeltaTime();
 
@@ -150,6 +154,15 @@ public class Main extends ApplicationAdapter {
 		//					"%s (%ss) n: %s (%ss)%n", gameState, stateTimer, nextState, stateTransitionTimer);
 
 		viewport.apply();
+
+		if ((Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT)
+						|| Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT))
+				&& Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE)
+				&& gameState == GameState.FREE_PLAY) {
+			System.out.println("Restarting game...");
+
+			initGameOver();
+		}
 	}
 
 	private static Sprite backgroundStars;
@@ -383,9 +396,9 @@ public class Main extends ApplicationAdapter {
 			for (int i = 0; i < storyPanels.length; i++) {
 				storyPanels[i] = new Sprite(new Texture("story/panel" + (i + 1) + ".png"));
 				storyPanels[i].setPosition(
-						(i % 3) * (Gdx.graphics.getWidth() - 200) / 3f + 100,
-						Gdx.graphics.getHeight() / 2f + (i >= 3 ? -470 : 25));
-				storyPanels[i].setSize(450, 450);
+						(i % 3) * (Gdx.graphics.getWidth() - 150) / 3f + 75,
+						Gdx.graphics.getHeight() / 2f + (i >= 3 ? -560 : 25));
+				storyPanels[i].setSize(550, 550);
 			}
 		}
 
@@ -404,12 +417,14 @@ public class Main extends ApplicationAdapter {
 
 		controller_left.input(false);
 		controller_right.input(false);
-		if (stateTimer % secsPerPanel > 0.75
+		if (stateTimer % secsPerPanel > 0.5
 				&& (leftControl
 								&& (controller_left.isButton1Pressed() || controller_left.isButton2Pressed())
 						|| !leftControl
 								&& (controller_right.isButton1Pressed() || controller_right.isButton2Pressed()))) {
 			stateTimer = ((int) (stateTimer / secsPerPanel) + 1) * secsPerPanel;
+
+			if (stateTimer > storyPanels.length * secsPerPanel) stateTimer += secsPerPanel;
 		}
 
 		if (stateTimer > 8 * secsPerPanel && nextState == gameState) {
@@ -478,8 +493,6 @@ public class Main extends ApplicationAdapter {
 			leftControl = false;
 		}
 
-		gui.drawGameOver(batch);
-
 		batch.end();
 	}
 
@@ -534,11 +547,13 @@ public class Main extends ApplicationAdapter {
 					(float) (Math.random() * 60f / difficulty.multiplier / Math.sqrt(score / 100f)) + 15;
 
 			if (Math.random() > Math.sqrt(Planet.planets.size()) / 20) Planet.spawnNewPlanet();
-			for (int i = 0; i < Math.log(Planet.planets.size()) * (1.5 * Math.random()); i++) {
+			for (int i = 0;
+					i < Math.log(Planet.planets.size()) * (1.5 * Math.random() * Math.random());
+					i++) {
 				Satellite.spawnNewSatellite();
 			}
 
-			for (int i = -1; i < Math.log(Planet.planets.size()) / 2; i++) {
+			for (int i = -1; i < Math.pow(score, 0.3) / 2; i++) {
 				Message.spawnNewMessage();
 			}
 		}

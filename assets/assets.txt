@@ -14,3 +14,4 @@ story/panel3.png
 story/panel4.png
 story/panel5.png
 story/panel6.png
+thursday_log.csv

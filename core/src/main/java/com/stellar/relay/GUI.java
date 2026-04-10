@@ -198,6 +198,23 @@ public class GUI {
 				"Press Any Button\n   to Play Again",
 				Gdx.graphics.getWidth() / 2f - 140f,
 				Gdx.graphics.getHeight() / 2f - 155f);
+
+		font36.draw(
+				batch,
+				"Leaderboard:",
+				Gdx.graphics.getWidth() - 350f,
+				Gdx.graphics.getHeight() / 2f + 250f);
+
+		for (int i = 0; i < Math.min(10, Logger.logList.size()); i++) {
+			Logger.LogEntry entry = Logger.logList.get(i);
+			if (entry == null) continue;
+			font24.draw(
+					batch,
+					"%2d. %s - %6d".formatted(i + 1, entry.difficulty(), entry.score()),
+					Gdx.graphics.getWidth() - 350f,
+					Gdx.graphics.getHeight() / 2f + 210f - i * 30f);
+		}
+
 		batch.end();
 	}
 }

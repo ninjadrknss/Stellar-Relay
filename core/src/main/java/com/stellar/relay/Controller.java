@@ -52,8 +52,9 @@ public class Controller {
 		if (picoPort == null) {
 			SerialPort[] ports = SerialPort.getCommPorts();
 
-			if (ports[ports.length - 1].getSystemPortName().contains("usb")
-					|| ports[ports.length - 1].getSystemPortName().contains("com")) {
+			if (ports.length != 0
+					&& (ports[ports.length - 1].getSystemPortName().contains("usb")
+							|| ports[ports.length - 1].getSystemPortName().contains("com"))) {
 				picoPort = ports[ports.length - 1];
 				picoPort.setBaudRate(9600);
 				picoPort.setNumDataBits(8);
@@ -220,6 +221,10 @@ public class Controller {
 
 		if (movementEnabled && button2Pressed && path != null) { // remove the last pathable
 			boolean drop = path.remove();
+
+			lastPathable.setState(Planet.State.NONE);
+			lastPathable = null;
+
 			if (drop) {
 				if (Main.DEBUG) System.out.println("Dropped message");
 				path = null;
@@ -278,7 +283,8 @@ public class Controller {
 
 		if (button1Pressed
 				&& path == null
-				&& lastPathable instanceof Planet p) { // Pick up message, TODO: disable
+				&& lastPathable instanceof Planet p
+				&& p.message.path.controller == null) { // Pick up message
 			path = p.message.path;
 			path.pickup(this);
 			if (Main.DEBUG) System.out.println("Picked up message");
@@ -304,6 +310,9 @@ public class Controller {
 		active = false;
 		velocity = 0;
 		angle = (float) (Math.random() * 2 * (float) Math.PI);
+
+		path = null;
+		lastPathable = null;
 
 		sprite.setPosition(
 				Gdx.graphics.getWidth() / 2f + 400 * (player == Player.LEFT ? -1 : 1),

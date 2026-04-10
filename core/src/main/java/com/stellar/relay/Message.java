@@ -6,14 +6,14 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 
 public class Message {
-	public static final float MAX_TIMEOUT =
-			45 / Main.difficulty.multiplier; // in seconds, TODO tweak this value for better gameplay
+	public static final float MAX_TIMEOUT = 45; // in seconds
 	public static final float speed = 0.2f; // Progress per second
 
 	enum State {
@@ -79,7 +79,13 @@ public class Message {
 			awaitingSprite.draw(batch);
 			batch.end();
 
-			life -= Gdx.graphics.getDeltaTime() / (GUI.score > 100 ? 1 : 20);
+			life -=
+					(float)
+							(Gdx.graphics.getDeltaTime()
+									* 1.5
+									* MathUtils.clamp(
+											MathUtils.log(10f, (float) Math.sqrt(GUI.score / 100f)), 0.1f, 3f)
+									* Main.difficulty.multiplier);
 
 			if (life <= 0) Main.initGameOver();
 		} else if (state == State.IN_TRANSIT) {
