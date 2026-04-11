@@ -2,7 +2,6 @@ PLACEHOLDER_planetMessage.png
 PLACEHOLDER_sendingMessage.png
 PLACEHOLDER_splashBackground.png
 fonts/PixelatedEleganceRegular-ovawB.ttf
-game_log.csv
 sprites/planets.png
 sprites/satellite.png
 sprites/satellite_signal.png
@@ -14,4 +13,3 @@ story/panel3.png
 story/panel4.png
 story/panel5.png
 story/panel6.png
-thursday_log.csv
